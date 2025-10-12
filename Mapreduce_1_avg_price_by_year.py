@@ -2,9 +2,9 @@ from pyspark.sql import SparkSession, functions as F
 
 spark = SparkSession.builder.appName("AvgPriceByYear").getOrCreate()
 
-# Đọc CSV từ HDFS
-df = spark.read.csv("hdfs://192.168.110.102:9000/input/car_data_clean.csv", 
-                    header=True, inferSchema=True)
+# Đọc Parquet từ HDFS
+df = spark.read.parquet("hdfs://192.168.110.105:9000/user/phuquy/BigData_Project/StandardizedDataCar/car_data_normalized.parquet")
+
 
 # Đổi tên cột
 df = df.withColumnRenamed("năm_sản_xuất", "year") \
@@ -22,10 +22,8 @@ result = df.groupBy("year").agg(
     F.count("*").alias("count")
 ).orderBy("year")
 
-#result.show(50, truncate=False)
-
 # Lưu kết quả sang HDFS (parquet)
-result.write.mode("overwrite").parquet("hdfs://192.168.110.102:9000/output/avg_price_by_year")
+result.write.mode("overwrite").parquet("hdfs://192.168.110.105:9000/output/avg_price_by_year")
 
 print(" MapReduce AvgPriceByYear đã chạy xong. Kiểm tra HDFS /output/avg_price_by_year")
 
