@@ -12,10 +12,10 @@ def main():
     spark = SparkSession.builder.master("local[*]").appName("ViewParquetAll").getOrCreate()
 
     paths = {
-        "Giá trung bình theo năm sản xuất": "hdfs://192.168.110.102:9000/output/avg_price_by_year",
-        "Giá cao/thấp nhất theo năm": "hdfs://192.168.110.102:9000/output/max_min_price_by_year",
-        "Top 5 xe phổ biến": "hdfs://192.168.110.102:9000/output/top5_cars",
-        "Giá trung bình theo xuất xứ": "hdfs://192.168.110.102:9000/output/avg_price_by_origin"
+        "Giá trung bình theo năm sản xuất": "hdfs://192.168.110.105:9000/output/avg_price_by_year",
+        "Giá cao/thấp nhất theo năm": "hdfs://192.168.110.105:9000/output/max_min_price_by_year",
+        "Top 5 xe phổ biến": "hdfs://192.168.110.105:9000/output/top5_cars",
+        "Giá trung bình theo xuất xứ": "hdfs://192.168.110.105:9000/output/avg_price_by_origin"
     }
 
     for title, path in paths.items():
