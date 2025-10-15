@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import StructType, StructField, StringType, FloatType
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType
 
 HDFS_INPUT_PATH = "hdfs://192.168.12.101:9000/du_lieu/tmdb_movies_normalized.parquet"
 HDFS_OUTPUT_PATH = "hdfs://192.168.12.101:9000/output/top_20_movies_by_rate"
@@ -22,7 +22,7 @@ print("--- Spark session đã khởi tạo ---")
 
 schema = StructType([
     StructField("Movie name", StringType(), True),
-    StructField("Movie rate", FloatType(), True),
+    StructField("Movie rate", DoubleType(), True),
     StructField("Description", StringType(), True),
     StructField("Creators", StringType(), True),
     StructField("Trailer link", StringType(), True),
@@ -55,5 +55,6 @@ top_20_movies.write \
     .save()
 
 print(f"Đã ghi kết quả vào MySQL bảng: {output_table}")
+
 
 spark.stop()
