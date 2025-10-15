@@ -1,0 +1,121 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #ffeef2; /* Màu nền rất nhạt */
+    color: #333;
+}
+
+/* Màu chủ đạo: Hồng đậm (Fuschia/Deep Pink) */
+:root {
+    --primary-color: #E91E63; /* Hồng đậm */
+    --secondary-color: #FF4081; /* Hồng sáng hơn */
+    --accent-color: #C2185B; /* Hồng tối hơn */
+    --active-button-color: #00A300; /* Màu xanh lá cho nút Active (để nổi bật) */
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.data-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    border: 1px solid #f0b4c2; /* Border màu hồng nhạt */
+    border-radius: 8px;
+    display: none;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.active-section {
+    display: block;
+}
+
+h2 {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #f0d0d0;
+    padding: 12px;
+    text-align: left;
+    font-size: 15px;
+}
+
+th {
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #fff0f5; /* Light pink stripe */
+}
+
+tr:hover {
+    background-color: #f7e0e7;
+}
+
+.dashboard-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.control-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    background-color: #fce4ec; /* Hồng rất nhạt */
+    color: var(--accent-color);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-button:hover {
+    background-color: #f8bbd0; /* Hồng nhạt hơn khi hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Nút đang được chọn */
+.control-button.active {
+    background-color: var(--active-button-color); /* Giữ màu xanh lá cây để dễ thấy */
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    color: #999;
+    font-size: 0.9em;
+}

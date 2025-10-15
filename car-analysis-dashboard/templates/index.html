@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Phân tích Xe hơi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Báo cáo Phân tích Dữ liệu Xe hơi (Spark/MySQL)</h1>
+    </header>
+
+    <main>
+        <!-- KHU VỰC CHỨA CÁC NÚT BẤM CHUYỂN ĐỔI BẢNG -->
+        <div class="dashboard-controls">
+            <button class="control-button active" data-target="section-origin">Giá TB theo Nguồn gốc</button>
+            <button class="control-button" data-target="section-year-avg">Giá TB theo Năm</button>
+            <button class="control-button" data-target="section-year-maxmin">Max/Min Giá theo Năm</button>
+            <button class="control-button" data-target="section-top5">Top 5 Xe</button>
+        </div>
+
+        <!-- Bảng 1: Giá Trung bình theo Nguồn gốc (Mặc định hiển thị) -->
+        <section id="section-origin" class="data-section active-section">
+            <h2>1. Giá Trung bình theo Nguồn gốc</h2>
+            <table id="table-origin"><thead></thead><tbody><tr><td colspan="100%">Đang tải dữ liệu...</td></tr></tbody></table>
+        </section>
+
+        <!-- Bảng 2: Giá Trung bình theo Năm -->
+        <section id="section-year-avg" class="data-section">
+            <h2>2. Giá Trung bình theo Năm</h2>
+            <table id="table-year-avg"><thead></thead><tbody><tr><td colspan="100%">Đang tải dữ liệu...</td></tr></tbody></table>
+        </section>
+
+        <!-- Bảng 3: Max/Min Giá theo Năm -->
+        <section id="section-year-maxmin" class="data-section">
+            <h2>3. Max/Min Giá theo Năm</h2>
+            <table id="table-year-maxmin"><thead></thead><tbody><tr><td colspan="100%">Đang tải dữ liệu...</td></tr></tbody></table>
+        </section>
+
+        <!-- Bảng 4: Top 5 Xe -->
+        <section id="section-top5" class="data-section">
+            <h2>4. Top 5 Xe có giá trị cao nhất</h2>
+            <table id="table-top5"><thead></thead><tbody><tr><td colspan="100%">Đang tải dữ liệu...</td></tr></tbody></table>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Big Data Engineering</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
