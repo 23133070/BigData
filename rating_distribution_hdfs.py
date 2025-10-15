@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, DecimalType
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType, DecimalType
 
 HDFS_INPUT_PATH = "hdfs://23133070-master:9000/du_lieu/tmdb_movies_normalized.parquet"
 HDFS_OUTPUT_PATH = "hdfs://23133070-master:9000/output/rating_distribution_report"
@@ -72,4 +72,5 @@ final_df.write \
 
 print(f"Đã ghi kết quả vào MySQL bảng: {output_table}")
 spark.stop()
+
 
