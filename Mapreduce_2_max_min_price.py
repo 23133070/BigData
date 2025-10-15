@@ -1,39 +1,88 @@
-# mapreduce_2_max_min_price.py
-from pyspark.sql import SparkSession, functions as F
-from pyspark.sql.functions import col, max as spark_max, min as spark_min
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
 
-# Khởi tạo SparkSession
-spark = SparkSession.builder.appName("MaxMinPriceByYear").getOrCreate()
+# --- THÔNG TIN KẾT NỐI MYSQL ---
+mysql_host = "192.168.111.100"
+mysql_port = "3306"
+mysql_db = "car_analysis_db"
+mysql_user = "sqoopdang"
+mysql_password = "1"
+jdbc_url = f"jdbc:mysql://{mysql_host}:{mysql_port}/{mysql_db}"
 
-# Đọc dữ liệu Parquet từ HDFS
-df = spark.read.parquet("hdfs://192.168.110.105:9000/user/phuquy/BigData_Project/StandardizedDataCar/car_data_normalized.parquet")
+# --- 1. Khởi tạo Spark Session ---
+spark = SparkSession.builder \
+    .appName("MaxMinPriceAnalysis") \
+    .getOrCreate()
 
-# Đổi tên các cột để dễ xử lý
-df = df.withColumnRenamed("năm_sản_xuất", "year") \
-       .withColumnRenamed("giá", "price") \
-       .withColumnRenamed("tên_xe", "car_name")
+print("--- Spark Session đã được tạo ---")
 
-# Chuyển cột price sang kiểu số (loại bỏ ký tự không phải số)
-df = df.withColumn("price", F.regexp_replace(F.col("price").cast("string"), "[^0-9]", "").cast("long"))
+# --- 2. ĐỌC DỮ LIỆU TỪ HDFS ---
+hdfs_path = "hdfs://192.168.111.100:9000/user/hadoopdang/BigData/Car/car_data_normalized.parquet"
+df = spark.read.parquet(hdfs_path)
+print(f"--- Đã đọc dữ liệu từ HDFS: {hdfs_path} ---")
 
-# Loại bỏ bản ghi thiếu hoặc không hợp lệ
-df = df.dropna(subset=["year", "price"]) \
-       .filter((F.col("year") > 1900) & (F.col("price") > 0))
-
-# Tính giá cao nhất và thấp nhất theo năm
-ext = df.groupBy("year").agg(
-    spark_max("price").alias("max_price"),
-    spark_min("price").alias("min_price")
+# --- 3. Lọc dữ liệu hợp lệ ---
+df_filtered = df.filter(
+    F.col("year").isNotNull() &
+    F.col("price").isNotNull() &
+    F.col("car_name").isNotNull()
 )
 
-# Tạo alias để tránh trùng tên cột
-df_alias = df.alias("d")
-ext_alias = ext.alias("e")
+# --- 4. Tính giá min/max theo năm ---
+price_extremes = df_filtered.groupBy("year").agg(
+    F.max("price").alias("max_price"),
+    F.min("price").alias("min_price")
+)
 
-# Lấy các xe có giá cao nhất theo năm
+# --- 5. Alias DataFrame để tránh ambiguous column ---
+df_alias = df_filtered.alias("df")
+price_alias = price_extremes.alias("pe")
+
+# Lấy xe giá cao nhất mỗi năm
 max_cars = df_alias.join(
-    ext_alias,
-    (df_alias.year == ext_alias.year) & (df_alias.price == ext_alias.max_price),
+    price_alias,
+    (F.col("df.year") == F.col("pe.year")) & (F.col("df.price") == F.col("pe.max_price")),
+    "inner"
+).select(
+    F.col("df.year").alias("year"),
+    F.col("df.car_name").alias("max_price_car"),
+    F.col("df.price").alias("max_price")
+).distinct()
+
+# Lấy xe giá thấp nhất mỗi năm
+min_cars = df_alias.join(
+    price_alias,
+    (F.col("df.year") == F.col("pe.year")) & (F.col("df.price") == F.col("pe.min_price")),
+    "inner"
+).select(
+    F.col("df.year").alias("year"),
+    F.col("df.car_name").alias("min_price_car"),
+    F.col("df.price").alias("min_price")
+).distinct()
+
+# --- 6. Gộp kết quả ---
+result_df = max_cars.join(min_cars, "year", "outer") \
+    .select("year", "max_price_car", "max_price", "min_price_car", "min_price") \
+    .orderBy(F.col("year").desc())
+
+print("--- Xử lý dữ liệu hoàn tất, chuẩn bị ghi kết quả vào MySQL ---")
+result_df.show()
+
+# --- 7. Ghi kết quả vào MySQL ---
+output_table = "max_min_price_by_year"
+
+result_df.write \
+    .format("jdbc") \
+    .option("url", jdbc_url) \
+    .option("driver", "com.mysql.cj.jdbc.Driver") \
+    .option("dbtable", output_table) \
+    .option("user", mysql_user) \
+    .option("password", mysql_password) \
+    .mode("overwrite") \
+    .save()
+
+print(f"--- HOÀN TẤT! Đã lưu kết quả vào bảng MySQL: {output_table} ---")
+spark.stop()
     "inner"
 ).select(
     df_alias.year.alias("year"),
