@@ -1,30 +1,51 @@
-from pyspark.sql import SparkSession, functions as F
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import DecimalType # Import công cụ ép kiểu
 
-spark = SparkSession.builder.appName("AvgPriceByYear").getOrCreate()
+# --- THÔNG TIN KẾT NỐI MYSQL (ĐIỂM ĐẾN) ---
+mysql_host = "192.168.111.100"
+mysql_port = "3306"
+mysql_db = "car_analysis_db"
+mysql_user = "sqoopdang"
+mysql_password = "1"
+jdbc_url = f"jdbc:mysql://{mysql_host}:{mysql_port}/{mysql_db}"
 
-# Đọc Parquet từ HDFS
-df = spark.read.parquet("hdfs://192.168.110.105:9000/user/phuquy/BigData_Project/StandardizedDataCar/car_data_normalized.parquet")
+# --- 1. Khởi tạo Spark Session ---
+spark = SparkSession.builder \
+    .appName("HdfsToMySqlAnalysis") \
+    .getOrCreate()
 
+print("--- Spark Session đã được tạo ---")
 
-# Đổi tên cột
-df = df.withColumnRenamed("năm_sản_xuất", "year") \
-       .withColumnRenamed("giá", "price")
+# --- 2. ĐỌC DỮ LIỆU TỪ HDFS (INPUT) ---
+hdfs_path = "hdfs://192.168.111.100:9000/user/hadoopdang/BigData/Car/car_data_normalized.parquet"
+df = spark.read.parquet(hdfs_path)
 
-# Chuyển giá sang số, loại bỏ ký tự lạ
-df = df.withColumn("price", F.regexp_replace(F.col("price").cast("string"), "[^0-9]", "").cast("long"))
+print(f"--- Đã đọc dữ liệu từ HDFS: {hdfs_path} ---")
 
-# Bỏ các bản không có year hoặc price
-df = df.filter(F.col("year").isNotNull() & F.col("price").isNotNull())
+# --- 3. XỬ LÝ DỮ LIỆU (ĐÃ SỬA LỖI) ---
+result_df = df.filter(F.col("year").isNotNull() & F.col("price").isNotNull()) \
+    .groupBy("year").agg(
+        # Ép kiểu avg_price thành Decimal để tương thích với MySQL
+        F.avg("price").cast(DecimalType(38, 2)).alias("avg_price"),
+        F.count("*").alias("car_count")
+    ).orderBy(F.col("year").desc())
 
-# Tính giá trung bình và số lượng xe theo năm
-result = df.groupBy("year").agg(
-    F.round(F.avg("price"), 2).alias("avg_price"),
-    F.count("*").alias("count")
-).orderBy("year")
+print("--- Xử lý dữ liệu hoàn tất, chuẩn bị ghi kết quả vào MySQL ---")
+result_df.show()
 
-# Lưu kết quả sang HDFS (parquet)
-result.write.mode("overwrite").parquet("hdfs://192.168.110.105:9000/output/avg_price_by_year")
+# --- 4. GHI KẾT QUẢ VÀO MYSQL (OUTPUT) ---
+output_table     = "avg_price_by_year"
 
-print(" MapReduce AvgPriceByYear đã chạy xong. Kiểm tra HDFS /output/avg_price_by_year")
+result_df.write \
+    .format("jdbc") \
+    .option("url", jdbc_url) \
+    .option("driver", "com.mysql.cj.jdbc.Driver") \
+    .option("dbtable", output_table) \
+    .option("user", mysql_user) \
+    .option("password", mysql_password) \
+    .mode("overwrite") \
+    .save()
 
+print(f"--- HOÀN TẤT! Đã lưu kết quả vào bảng MySQL: {output_table} ---")
 spark.stop()
